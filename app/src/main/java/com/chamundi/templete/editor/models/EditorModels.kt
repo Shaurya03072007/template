@@ -4,6 +4,18 @@ import android.graphics.Bitmap
 import android.graphics.Typeface
 import androidx.compose.ui.graphics.Color
 import java.util.UUID
+import java.io.File
+import java.util.Date
+
+/**
+ * Data class representing a preset file
+ */
+data class Preset(
+    val file: File,
+    val name: String,
+    val date: Date
+)
+
 
 /**
  * Sealed class hierarchy for editor tools.

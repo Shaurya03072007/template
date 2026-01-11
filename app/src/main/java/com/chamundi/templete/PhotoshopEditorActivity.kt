@@ -30,8 +30,8 @@ import com.chamundi.templete.editor.ui.ToolBar
 import com.chamundi.templete.editor.ui.EditorCanvas
 import com.chamundi.templete.editor.ui.LayersPanel
 import com.chamundi.templete.editor.ui.PropertiesPanel
-import com.chamundi.templete.editor.ui.PresetsSidebar
-import com.chamundi.templete.editor.ui.Preset
+import com.chamundi.templete.editor.ui.PresetsDialog
+import com.chamundi.templete.editor.models.Preset
 import com.chamundi.templete.ui.theme.TempleteTheme
 import java.io.File
 import java.text.SimpleDateFormat
@@ -79,7 +79,7 @@ fun PhotoshopEditorScreen(
     val context = LocalContext.current
     val editorState by viewModel.state.collectAsState()
     var showLayersPanel by remember { mutableStateOf(true) }
-    var showPresetsPanel by remember { mutableStateOf(true) }
+    var showPresetsDialog by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     
@@ -186,6 +186,14 @@ fun PhotoshopEditorScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Photoshop Editor") },
+                navigationIcon = {
+                    IconButton(onClick = { showPresetsDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Presets Library"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
@@ -252,7 +260,7 @@ fun PhotoshopEditorScreen(
                             }
                         )
                     }
-                    
+
                     // Toggle layers panel
                     IconButton(onClick = { showLayersPanel = !showLayersPanel }) {
                         Icon(
@@ -269,29 +277,7 @@ fun PhotoshopEditorScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Far Left: Presets Sidebar (collapsible)
-            if (showPresetsPanel) {
-                PresetsSidebar(
-                    presets = presets,
-                    onLoadPreset = { preset ->
-                        viewModel.loadPreset(context, preset.file)
-                    },
-                    onSavePreset = { name ->
-                        val file = File(presetsDir, "$name.json")
-                        viewModel.savePreset(context, file)
-                        refreshPresets()
-                    },
-                    onDeletePreset = { preset ->
-                        if (preset.file.exists()) preset.file.delete()
-                        refreshPresets()
-                    },
-                    modifier = Modifier
-                        .width(200.dp)
-                        .fillMaxHeight()
-                )
 
-                VerticalDivider()
-            }
 
             // Left: Tool Bar
             ToolBar(
@@ -384,5 +370,25 @@ fun PhotoshopEditorScreen(
                 }
             )
         }
+    }
+
+    // Presets Dialog
+    if (showPresetsDialog) {
+        PresetsDialog(
+            presets = presets,
+            onLoadPreset = { preset ->
+                viewModel.loadPreset(context, preset.file)
+            },
+            onSavePreset = { name ->
+                val file = File(presetsDir, "$name.json")
+                viewModel.savePreset(context, file)
+                refreshPresets()
+            },
+            onDeletePreset = { preset ->
+                if (preset.file.exists()) preset.file.delete()
+                refreshPresets()
+            },
+            onDismiss = { showPresetsDialog = false }
+        )
     }
 }

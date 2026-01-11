@@ -2,7 +2,7 @@ package com.chamundi.templete.editor.utils
 
 import android.content.Context
 import android.graphics.Typeface
-import com.chamundi.templete.editor.utils.ImageGenerator
+
 
 object FontProvider {
 

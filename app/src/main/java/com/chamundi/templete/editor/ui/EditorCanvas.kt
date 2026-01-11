@@ -132,8 +132,6 @@ fun EditorCanvas(
                 }
             }
         }
-    }
-    
         // Crop Overlay
         if (editorState.activeTool is Tool.Crop) {
             CropOverlay(
@@ -149,6 +147,7 @@ fun EditorCanvas(
                 }
             )
         }
+    }
 
     // Text input dialog
     if (showTextDialog) {

@@ -36,7 +36,7 @@
         </activity>
         
         <!-- Photoshop-style Editor Activity -->
-        <activity
+       <activity
             android:name=".PhotoshopEditorActivity"
             android:exported="true"
             android:label="Photoshop Editor"
@@ -46,8 +46,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
-        <!-- FileProvider for sharing images -->
+
+        <!--   FileProvider for sharing images -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

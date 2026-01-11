@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.drawscope.withTransform
 import com.chamundi.templete.editor.models.CanvasTransform
 
 /**
@@ -84,7 +85,9 @@ fun CropOverlay(
                 // (Simplified: just draw crop border and grid)
 
                 // Scale context to match canvas zoom
-                androidx.compose.ui.graphics.drawscope.scale(scale = zoom, pivot = Offset.Zero) {
+                withTransform({
+                    scale(scaleX = zoom, scaleY = zoom, pivot = Offset.Zero)
+                }) {
                     // Draw Crop Rect Border
                     drawRect(
                         color = Color.White,
