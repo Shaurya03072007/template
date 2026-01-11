@@ -97,7 +97,7 @@ sealed class Layer {
         override var locked: Boolean = false,
         override var opacity: Float = 1f,
         override var transform: LayerTransform = LayerTransform(),
-        val color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.White,
+        var color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.White,
         val width: Int = 1080,
         val height: Int = 1350
     ) : Layer()
