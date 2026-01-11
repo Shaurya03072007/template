@@ -21,20 +21,55 @@ object ImageExporter {
      * 
      * @param state The editor state to export
      * @param outputFile The output PNG file
+     * @param targetRatio Optional target aspect ratio (width/height). If provided, image will be cropped.
      * @return true if export was successful
      */
-    fun exportAsPng(state: EditorState, outputFile: File): Boolean {
+    fun exportAsPng(state: EditorState, outputFile: File, targetRatio: Float? = null): Boolean {
         return try {
-            val bitmap = flattenLayers(state)
-            FileOutputStream(outputFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            val rawBitmap = flattenLayers(state)
+            val finalBitmap = if (targetRatio != null) {
+                cropToRatio(rawBitmap, targetRatio)
+            } else {
+                rawBitmap
             }
-            bitmap.recycle()
+
+            FileOutputStream(outputFile).use { out ->
+                finalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+
+            if (finalBitmap != rawBitmap) {
+                rawBitmap.recycle()
+            }
+            finalBitmap.recycle()
+
             true
         } catch (e: Exception) {
             e.printStackTrace()
             false
         }
+    }
+
+    private fun cropToRatio(bitmap: Bitmap, ratio: Float): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val currentRatio = width.toFloat() / height.toFloat()
+
+        var newWidth = width
+        var newHeight = height
+        var x = 0
+        var y = 0
+
+        if (currentRatio > ratio) {
+            // Width is too wide, crop width
+            newWidth = (height * ratio).toInt()
+            x = (width - newWidth) / 2
+        } else {
+            // Height is too tall, crop height
+            newHeight = (width / ratio).toInt()
+            y = (height - newHeight) / 2
+        }
+
+        return Bitmap.createBitmap(bitmap, x, y, newWidth, newHeight)
     }
     
     /**

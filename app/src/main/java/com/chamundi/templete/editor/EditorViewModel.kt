@@ -222,15 +222,30 @@ class EditorViewModel : ViewModel() {
         layerId: String,
         fontSize: Float? = null,
         textColor: androidx.compose.ui.graphics.Color? = null,
-        fontFamily: String? = null
+        fontFamily: String? = null,
+        typeface: android.graphics.Typeface? = null
     ) {
         _state.value = _state.value.updateLayer(layerId) { layer ->
             if (layer is Layer.TextLayer) {
                 layer.copy(
                     fontSize = fontSize ?: layer.fontSize,
                     textColor = textColor ?: layer.textColor,
-                    fontFamily = fontFamily ?: layer.fontFamily
+                    fontFamily = fontFamily ?: layer.fontFamily,
+                    typeface = typeface ?: layer.typeface
                 )
+            } else {
+                layer
+            }
+        }
+    }
+
+    /**
+     * Updates background layer color
+     */
+    fun updateBackgroundColor(layerId: String, color: androidx.compose.ui.graphics.Color) {
+        _state.value = _state.value.updateLayer(layerId) { layer ->
+            if (layer is Layer.BackgroundLayer) {
+                layer.copy(color = color)
             } else {
                 layer
             }
@@ -271,6 +286,40 @@ class EditorViewModel : ViewModel() {
      */
     fun resetCanvasTransform() {
         _state.value = _state.value.withCanvasTransform(CanvasTransform())
+    }
+
+    /**
+     * Crops the canvas to the specified dimensions and offset.
+     * Adjusts layers so they maintain their relative position to the visual content.
+     */
+    fun cropCanvas(width: Int, height: Int, offsetX: Int, offsetY: Int) {
+        val currentState = _state.value
+
+        // 1. Update layers: shift them by -offsetX, -offsetY
+        val newLayers = currentState.layers.map { layer ->
+            val newTransform = layer.transform.translate(-offsetX.toFloat(), -offsetY.toFloat())
+            if (layer is Layer.BackgroundLayer) {
+                // Background layer usually resizes to canvas, but here we treat it as just resizing
+                layer.copy(
+                    width = width,
+                    height = height,
+                    transform = newTransform.copy(offsetX = 0f, offsetY = 0f) // Keep bg at 0,0? Or let it shift?
+                    // Actually, for crop, if we crop into the image, we want the content to move relative to origin (0,0).
+                    // So yes, everything shifts left/up by offset.
+                )
+            } else {
+                layer.withTransform(newTransform)
+            }
+        }
+
+        // 2. Update state with new dimensions and layers
+        _state.value = currentState.copy(
+            canvasWidth = width,
+            canvasHeight = height,
+            layers = newLayers,
+            // Reset to Move tool after crop
+            activeTool = Tool.Move
+        )
     }
     
     // ===== LAYER CREATION HELPERS =====
@@ -338,6 +387,23 @@ class EditorViewModel : ViewModel() {
      */
     fun resetEditor() {
         _state.value = createInitialState()
+    }
+
+    /**
+     * Loads preset from file
+     */
+    fun loadPreset(context: android.content.Context, file: java.io.File) {
+        val loadedState = com.chamundi.templete.editor.persistence.ProjectSerializer.loadProject(file, context)
+        if (loadedState != null) {
+            _state.value = loadedState
+        }
+    }
+
+    /**
+     * Saves current state as preset
+     */
+    fun savePreset(context: android.content.Context, file: java.io.File) {
+        com.chamundi.templete.editor.persistence.ProjectSerializer.saveProject(_state.value, file, context)
     }
     
     // ===== LAYER REORDERING =====

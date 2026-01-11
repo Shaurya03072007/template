@@ -30,6 +30,8 @@ import com.chamundi.templete.editor.ui.ToolBar
 import com.chamundi.templete.editor.ui.EditorCanvas
 import com.chamundi.templete.editor.ui.LayersPanel
 import com.chamundi.templete.editor.ui.PropertiesPanel
+import com.chamundi.templete.editor.ui.PresetsSidebar
+import com.chamundi.templete.editor.ui.Preset
 import com.chamundi.templete.ui.theme.TempleteTheme
 import java.io.File
 import java.text.SimpleDateFormat
@@ -77,9 +79,32 @@ fun PhotoshopEditorScreen(
     val context = LocalContext.current
     val editorState by viewModel.state.collectAsState()
     var showLayersPanel by remember { mutableStateOf(true) }
+    var showPresetsPanel by remember { mutableStateOf(true) }
     var showMenu by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     
+    // Presets Management
+    val presetsDir = File(context.filesDir, "presets")
+    if (!presetsDir.exists()) presetsDir.mkdirs()
+
+    var presets by remember {
+        mutableStateOf(
+            presetsDir.listFiles()
+                ?.filter { it.extension == "json" }
+                ?.map { Preset(it, it.nameWithoutExtension, Date(it.lastModified())) }
+                ?.sortedByDescending { it.date }
+                ?: emptyList()
+        )
+    }
+
+    fun refreshPresets() {
+        presets = presetsDir.listFiles()
+            ?.filter { it.extension == "json" }
+            ?.map { Preset(it, it.nameWithoutExtension, Date(it.lastModified())) }
+            ?.sortedByDescending { it.date }
+            ?: emptyList()
+    }
+
     // Image picker launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -133,12 +158,12 @@ fun PhotoshopEditorScreen(
     }
     
     // Export as PNG
-    fun exportAsPng() {
+    fun exportAsPng(ratio: Float? = null) {
         try {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val exportFile = File(getExportsDir(), "export_$timestamp.png")
             
-            if (ImageExporter.exportAsPng(viewModel.getState(), exportFile)) {
+            if (ImageExporter.exportAsPng(viewModel.getState(), exportFile, ratio)) {
                 Toast.makeText(context, "Exported to ${exportFile.absolutePath}", Toast.LENGTH_LONG).show()
                 
                 // Notify media scanner
@@ -200,7 +225,7 @@ fun PhotoshopEditorScreen(
                         DropdownMenuItem(
                             text = { Text("Export as PNG") },
                             onClick = {
-                                exportAsPng()
+                                showExportDialog = true
                                 showMenu = false
                             }
                         )
@@ -244,10 +269,37 @@ fun PhotoshopEditorScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Far Left: Presets Sidebar (collapsible)
+            if (showPresetsPanel) {
+                PresetsSidebar(
+                    presets = presets,
+                    onLoadPreset = { preset ->
+                        viewModel.loadPreset(context, preset.file)
+                    },
+                    onSavePreset = { name ->
+                        val file = File(presetsDir, "$name.json")
+                        viewModel.savePreset(context, file)
+                        refreshPresets()
+                    },
+                    onDeletePreset = { preset ->
+                        if (preset.file.exists()) preset.file.delete()
+                        refreshPresets()
+                    },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .fillMaxHeight()
+                )
+
+                VerticalDivider()
+            }
+
             // Left: Tool Bar
             ToolBar(
                 activeTool = editorState.activeTool,
-                onToolSelected = { tool -> viewModel.selectTool(tool) },
+                onToolSelected = { tool ->
+                     // Toggle Presets if Tool is None (optional logic, for now simple button in toolbar maybe?)
+                     viewModel.selectTool(tool)
+                },
                 modifier = Modifier.fillMaxHeight()
             )
             
@@ -287,6 +339,50 @@ fun PhotoshopEditorScreen(
                     )
                 }
             }
+        }
+
+        if (showExportDialog) {
+            AlertDialog(
+                onDismissRequest = { showExportDialog = false },
+                title = { Text("Export Image") },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("Select Aspect Ratio:")
+                        Button(
+                            onClick = { exportAsPng(null); showExportDialog = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Original")
+                        }
+                        Button(
+                            onClick = { exportAsPng(1f); showExportDialog = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("1:1 (Square)")
+                        }
+                        Button(
+                            onClick = { exportAsPng(4f/5f); showExportDialog = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("4:5 (Portrait)")
+                        }
+                        Button(
+                            onClick = { exportAsPng(16f/9f); showExportDialog = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("16:9 (Landscape)")
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showExportDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

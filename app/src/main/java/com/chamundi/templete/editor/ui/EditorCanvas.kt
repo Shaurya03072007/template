@@ -53,12 +53,14 @@ fun EditorCanvas(
     val density = LocalDensity.current
     
     // Workspace background (neutral dark gray)
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .background(editorState.canvasBackgroundColor),
         contentAlignment = Alignment.Center
     ) {
+        val viewportSize = Size(constraints.maxWidth.toFloat(), constraints.maxHeight.toFloat())
+
         // Canvas with gesture handling
         val canvasTransform = editorState.canvasTransform
         val zoom = canvasTransform.zoom
@@ -132,6 +134,22 @@ fun EditorCanvas(
         }
     }
     
+        // Crop Overlay
+        if (editorState.activeTool is Tool.Crop) {
+            CropOverlay(
+                canvasWidth = editorState.canvasWidth,
+                canvasHeight = editorState.canvasHeight,
+                canvasTransform = editorState.canvasTransform,
+                viewportSize = viewportSize,
+                onApplyCrop = { w, h, x, y ->
+                    viewModel.cropCanvas(w, h, x, y)
+                },
+                onCancel = {
+                    viewModel.selectTool(Tool.Move)
+                }
+            )
+        }
+
     // Text input dialog
     if (showTextDialog) {
         val existingLayer = editingTextLayerId?.let { id ->

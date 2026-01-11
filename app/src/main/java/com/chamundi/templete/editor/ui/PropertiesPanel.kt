@@ -17,9 +17,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import com.chamundi.templete.editor.EditorViewModel
 import com.chamundi.templete.editor.models.EditorState
 import com.chamundi.templete.editor.models.Layer
+import com.chamundi.templete.editor.utils.FontProvider
 
 /**
  * PropertiesPanel - Contextual properties panel for editing layer attributes.
@@ -35,6 +37,11 @@ fun PropertiesPanel(
     modifier: Modifier = Modifier
 ) {
     val selectedLayer = editorState.getSelectedLayer()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        FontProvider.initialize(context)
+    }
     
     Surface(
         modifier = modifier,
@@ -87,6 +94,13 @@ fun PropertiesPanel(
                             },
                             onColorChange = { color ->
                                 viewModel.updateTextProperties(selectedLayer.id, textColor = color)
+                            },
+                            onFontChange = { fontName, typeface ->
+                                viewModel.updateTextProperties(
+                                    selectedLayer.id,
+                                    fontFamily = fontName,
+                                    typeface = typeface
+                                )
                             }
                         )
                     }
@@ -94,7 +108,12 @@ fun PropertiesPanel(
                         ImageLayerProperties(layer = selectedLayer)
                     }
                     is Layer.BackgroundLayer -> {
-                        BackgroundLayerProperties(layer = selectedLayer)
+                        BackgroundLayerProperties(
+                            layer = selectedLayer,
+                            onColorChange = { color ->
+                                viewModel.updateBackgroundColor(selectedLayer.id, color)
+                            }
+                        )
                     }
                 }
             }
@@ -170,8 +189,11 @@ private fun PropertyValuePair(label: String, value: String) {
 private fun TextLayerProperties(
     layer: Layer.TextLayer,
     onFontSizeChange: (Float) -> Unit,
-    onColorChange: (Color) -> Unit
+    onColorChange: (Color) -> Unit,
+    onFontChange: (String, android.graphics.Typeface) -> Unit
 ) {
+    var showFontMenu by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -189,6 +211,40 @@ private fun TextLayerProperties(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
+        // Font Selection
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { showFontMenu = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = layer.fontFamily,
+                    maxLines = 1
+                )
+                Spacer(Modifier.weight(1f))
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            }
+
+            DropdownMenu(
+                expanded = showFontMenu,
+                onDismissRequest = { showFontMenu = false },
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                FontProvider.getAvailableFonts().forEach { font ->
+                    DropdownMenuItem(
+                        text = { Text(font.name) },
+                        onClick = {
+                            onFontChange(font.name, font.typeface)
+                            showFontMenu = false
+                        },
+                        trailingIcon = if (font.name == layer.fontFamily) {
+                            { Icon(Icons.Default.Check, contentDescription = null) }
+                        } else null
+                    )
+                }
+            }
+        }
+
         // Font size slider
         Column {
             Row(
@@ -262,7 +318,10 @@ private fun ImageLayerProperties(layer: Layer.ImageLayer) {
  * Background layer specific properties
  */
 @Composable
-private fun BackgroundLayerProperties(layer: Layer.BackgroundLayer) {
+private fun BackgroundLayerProperties(
+    layer: Layer.BackgroundLayer,
+    onColorChange: (Color) -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -278,23 +337,16 @@ private fun BackgroundLayerProperties(layer: Layer.BackgroundLayer) {
             value = "${layer.width}×${layer.height}"
         )
         
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "Color:",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(layer.color)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-            )
-        }
+        Text(
+            text = "Background Color",
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+        )
+
+        ColorPalette(
+            selectedColor = layer.color,
+            onColorSelected = onColorChange
+        )
     }
 }
 

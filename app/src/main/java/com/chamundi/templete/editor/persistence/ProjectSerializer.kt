@@ -227,20 +227,24 @@ object ProjectSerializer {
                 width = json.getInt("width"),
                 height = json.getInt("height")
             )
-            "text" -> Layer.TextLayer(
-                id = id,
-                name = name,
-                visible = visible,
-                locked = locked,
-                opacity = opacity,
-                transform = transform,
-                text = json.getString("text"),
-                fontSize = json.getDouble("fontSize").toFloat(),
-                textColor = deserializeColor(json.getString("textColor")),
-                fontFamily = json.optString("fontFamily", "Default"),
-                textWidth = json.optDouble("textWidth", 0.0).toFloat(),
-                textHeight = json.optDouble("textHeight", 0.0).toFloat()
-            )
+            "text" -> {
+                val fontFamily = json.optString("fontFamily", "Default")
+                Layer.TextLayer(
+                    id = id,
+                    name = name,
+                    visible = visible,
+                    locked = locked,
+                    opacity = opacity,
+                    transform = transform,
+                    text = json.getString("text"),
+                    fontSize = json.getDouble("fontSize").toFloat(),
+                    textColor = deserializeColor(json.getString("textColor")),
+                    fontFamily = fontFamily,
+                    typeface = com.chamundi.templete.editor.utils.FontProvider.getTypeface(fontFamily),
+                    textWidth = json.optDouble("textWidth", 0.0).toFloat(),
+                    textHeight = json.optDouble("textHeight", 0.0).toFloat()
+                )
+            }
             "image" -> {
                 // Fix: Properly restart image path from json
                 val imagePath = if (json.has("imagePath")) json.getString("imagePath") else null
