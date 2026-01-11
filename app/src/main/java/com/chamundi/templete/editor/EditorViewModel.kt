@@ -14,8 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
  * 
  * All state mutations go through this ViewModel to ensure consistency.
  */
-class EditorViewModel : ViewModel() {
+class EditorViewModel(application: android.app.Application) : androidx.lifecycle.AndroidViewModel(application) {
     
+    init {
+        com.chamundi.templete.editor.utils.FontProvider.initialize(application)
+    }
+
     // Private mutable state
     private val _state = MutableStateFlow(createInitialState())
     

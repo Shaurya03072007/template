@@ -2,7 +2,7 @@ package com.chamundi.templete.editor.utils
 
 import android.content.Context
 import android.graphics.Typeface
-import com.chamundi.templete.editor.utils.ImageGenerator
+import java.io.File
 
 object FontProvider {
 
@@ -11,27 +11,36 @@ object FontProvider {
         val typeface: Typeface
     )
 
-    private var fonts: List<FontInfo> = emptyList()
+    private var fonts: MutableList<FontInfo> = mutableListOf()
 
     fun initialize(context: Context) {
-        val systemFonts = listOf(
-            FontInfo("Default", Typeface.DEFAULT),
-            FontInfo("Serif", Typeface.SERIF),
-            FontInfo("Sans Serif", Typeface.SANS_SERIF),
-            FontInfo("Monospace", Typeface.MONOSPACE),
+        if (fonts.isNotEmpty()) return
+
+        // Standard System Fonts
+        fonts.add(FontInfo("Default", Typeface.DEFAULT))
+        fonts.add(FontInfo("Serif", Typeface.SERIF))
+        fonts.add(FontInfo("Sans Serif", Typeface.SANS_SERIF))
+        fonts.add(FontInfo("Monospace", Typeface.MONOSPACE))
+
+        // Asset Fonts
+        val fontFiles = listOf(
+            "Ramabhadra" to "fonts/Ramabhadra-Regular.ttf",
+            "Open Sans" to "fonts/OpenSans-Regular.ttf",
+            "Lato" to "fonts/Lato-Regular.ttf",
+            "Montserrat" to "fonts/Montserrat-Regular.ttf",
+            "Oswald" to "fonts/Oswald-Regular.ttf",
+            "Source Sans Pro" to "fonts/SourceSansPro-Regular.ttf",
+            "Raleway" to "fonts/Raleway-Regular.ttf"
         )
 
-        val customFonts = mutableListOf<FontInfo>()
-
-        // Try to load Ramabhadra from assets if it exists (known from previous exploration)
-        try {
-            val ramabhadra = Typeface.createFromAsset(context.assets, "fonts/Ramabhadra-Regular.ttf")
-            customFonts.add(FontInfo("Ramabhadra", ramabhadra))
-        } catch (e: Exception) {
-            // Ignore if not found
+        for ((name, path) in fontFiles) {
+            try {
+                val typeface = Typeface.createFromAsset(context.assets, path)
+                fonts.add(FontInfo(name, typeface))
+            } catch (e: Exception) {
+                android.util.Log.e("FontProvider", "Failed to load font: $name from $path", e)
+            }
         }
-
-        fonts = systemFonts + customFonts
     }
 
     fun getAvailableFonts(): List<FontInfo> {
@@ -40,5 +49,16 @@ object FontProvider {
 
     fun getTypeface(fontName: String): Typeface {
         return fonts.find { it.name == fontName }?.typeface ?: Typeface.DEFAULT
+    }
+
+    fun getTypefaceWithStyle(fontName: String, isBold: Boolean, isItalic: Boolean): Typeface {
+        val baseTypeface = getTypeface(fontName)
+        val style = when {
+            isBold && isItalic -> Typeface.BOLD_ITALIC
+            isBold -> Typeface.BOLD
+            isItalic -> Typeface.ITALIC
+            else -> Typeface.NORMAL
+        }
+        return Typeface.create(baseTypeface, style)
     }
 }
