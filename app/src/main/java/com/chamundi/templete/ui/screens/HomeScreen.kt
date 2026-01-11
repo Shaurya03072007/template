@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.material.icons.filled.Menu
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -65,7 +66,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Newspaper,
+                        imageVector = Icons.Filled.Menu,
                         contentDescription = null,
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -83,7 +84,7 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Icon(Icons.Default.ArrowForward, contentDescription = null)
+                    Icon(Icons.Filled.ArrowForward, contentDescription = null)
                 }
             }
 
@@ -105,7 +106,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        imageVector = Icons.Filled.Edit,
                         contentDescription = null,
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -123,7 +124,7 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Icon(Icons.Default.ArrowForward, contentDescription = null)
+                    Icon(Icons.Filled.ArrowForward, contentDescription = null)
                 }
             }
         }

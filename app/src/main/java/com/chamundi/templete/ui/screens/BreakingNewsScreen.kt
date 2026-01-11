@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.chamundi.templete.viewmodel.BreakingNewsViewModel
 import com.chamundi.templete.utils.ImageGenerator
@@ -64,7 +65,7 @@ fun BreakingNewsScreen(
                 ),
                 actions = {
                     IconButton(onClick = onNavigateToLinkShare) {
-                        Icon(Icons.Default.Share, contentDescription = "Share Link")
+                        Icon(Icons.Filled.Share, contentDescription = "Share Link")
                     }
                 }
             )
@@ -73,13 +74,13 @@ fun BreakingNewsScreen(
             BottomAppBar(
                 actions = {
                     IconButton(onClick = { viewModel.generatePost() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Generate Post")
+                        Icon(Icons.Filled.Refresh, contentDescription = "Generate Post")
                     }
                     IconButton(onClick = { viewModel.generateThumbnail() }) {
-                        Icon(Icons.Default.Image, contentDescription = "Generate Thumbnail")
+                        Icon(Icons.Filled.AccountBox, contentDescription = "Generate Thumbnail")
                     }
                     IconButton(onClick = { showResolutionDialog = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Resolution")
+                        Icon(Icons.Filled.Settings, contentDescription = "Resolution")
                     }
                 },
                 floatingActionButton = {
@@ -92,7 +93,7 @@ fun BreakingNewsScreen(
                         containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
                         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
                     ) {
-                        Icon(Icons.Default.Share, "Share Image")
+                        Icon(Icons.Filled.Share, "Share Image")
                     }
                 }
             )
@@ -127,7 +128,7 @@ fun BreakingNewsScreen(
                                     if (state.thumbnailBitmap != null) {
                                         detectDragGestures { change, dragAmount ->
                                             change.consume()
-                                            viewModel.onDragThumbnailText(dragAmount.x, dragAmount.y, size)
+                                            viewModel.onDragThumbnailText(dragAmount.x, dragAmount.y, size.toSize())
                                         }
                                     }
                                 },
@@ -137,7 +138,7 @@ fun BreakingNewsScreen(
                         // Show loading or original image if no generation yet?
                         // For now just icon
                          Icon(
-                            imageVector = Icons.Default.Image,
+                            imageVector = Icons.Filled.AccountBox,
                             contentDescription = "Tap to generate",
                             modifier = Modifier.size(64.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -145,7 +146,7 @@ fun BreakingNewsScreen(
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                imageVector = Icons.Default.AddPhotoAlternate,
+                                imageVector = Icons.Filled.Add,
                                 contentDescription = "Add Photo",
                                 modifier = Modifier.size(48.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -195,7 +196,7 @@ fun BreakingNewsScreen(
                     ) {
                         Text("Appearance Settings", style = MaterialTheme.typography.titleMedium)
                         Icon(
-                            if (showSettingsSheet) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            if (showSettingsSheet) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                             contentDescription = "Toggle Settings"
                         )
                     }
